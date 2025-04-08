@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -22,37 +22,119 @@
 #include "task.h"
 #include "main.h"
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+/* USER CODE BEGIN */
+#include "ensi_uart.h"
 
-/* USER CODE END Includes */
 
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
+/**
+* @brief Creation of software system architecture
+*/
+void app_init(void);
 
-/* USER CODE END PTD */
+/**
+* @brief Iterative function that only calls itself
+*/
+static void growth(void);
 
-/* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
+/**
+* @brief Task 1 for test. Rename task with useful name for a real application
+*/
+static void task1(void *pvParameters);
 
-/* USER CODE END PD */
+/**
+* @brief Task 2 for test. Rename task with useful name for a real application
+*/
+static void task2(void *pvParameters);
 
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
+/**
+* @brief Task 3 for test. Rename task with useful name for a real application
+*/
+static void task3(void *pvParameters);
 
-/* USER CODE END PM */
 
-/* Private variables ---------------------------------------------------------*/
-/* USER CODE BEGIN Variables */
+void app_init(void) {
+    /* application tasks creation */
 
-/* USER CODE END Variables */
+	xTaskCreate(task1,       				/* Function that implements the task. */
+				"Tache 1",          		/* Text name for the task. */
+				configMINIMAL_STACK_SIZE,  	/* Stack size in words, not bytes. */
+				NULL,    					/* Parameter passed into the task. */
+				tskIDLE_PRIORITY+2,			/* Priority at which the task is created. */
+				NULL);      				/* Used to pass out the created task's handle. */
 
-/* Private function prototypes -----------------------------------------------*/
-/* USER CODE BEGIN FunctionPrototypes */
+	xTaskCreate(task2,       				/* Function that implements the task. */
+				"Tache 2",          		/* Text name for the task. */
+				configMINIMAL_STACK_SIZE,  	/* Stack size in words, not bytes. */
+				NULL,    					/* Parameter passed into the task. */
+				tskIDLE_PRIORITY+1,			/* Priority at which the task is created. */
+				NULL);      				/* Used to pass out the created task's handle. */
 
-/* USER CODE END FunctionPrototypes */
+	xTaskCreate(task3,       				/* Function that implements the task. */
+				"Tache 3",          		/* Text name for the task. */
+				configMINIMAL_STACK_SIZE,  	/* Stack size in words, not bytes. */
+				NULL,    					/* Parameter passed into the task. */
+				tskIDLE_PRIORITY+1,			/* Priority at which the task is created. */
+				NULL);      				/* Used to pass out the created task's handle. */
+}
 
-/* Private application code --------------------------------------------------*/
-/* USER CODE BEGIN Application */
 
-/* USER CODE END Application */
+static void growth(void) {
+	vTaskDelay(1);
+	growth();
+}
+
+
+static void task1(void *pvParameters) {
+	// Task infinite loop
+	while(1) {
+		ENSI_UART_PutChar('1');
+		growth();
+	}
+}
+
+
+static void task2(void *pvParameters) {
+	// Task infinite loop
+	while(1) {
+		ENSI_UART_PutChar('2');
+	}
+}
+
+
+static void task3(void *pvParameters) {
+	// Task infinite loop
+	while(1) {
+		ENSI_UART_PutChar('3');
+	}
+}
+
+
+/*
+* FreeRTOS callback function for stack overflow detection
+*/
+void vApplicationStackOverflowHook( TaskHandle_t xTask, signed char *pcTaskName )
+{
+    ENSI_UART_PutString((uint8_t*)"\r\n*** Application error - ");
+    ENSI_UART_PutString((uint8_t*)pcTaskName);
+    ENSI_UART_PutString((uint8_t*)" stackoverflow ***");
+
+    /* it's a trap. Comment while(1) to force application software reset */
+    while(1);
+    NVIC_SystemReset();
+}
+
+
+/*
+* FreeRTOS callback function for heap overflow detection
+*/
+void vApplicationMallocFailedHook( void )
+{
+	ENSI_UART_PutString((uint8_t*)"\r\n*** Application error - heap overflow ***");
+
+    /* it's a trap. Comment while(1) to force application software reset */
+    while(1);
+    NVIC_SystemReset();
+}
+
+/* USER CODE END */
+
